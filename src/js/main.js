@@ -50,7 +50,16 @@
 			this._name = pluginName;
 			this.init(this.settings);
 		}
-
+		var tweakCSS = function(settings,element2mod,property,value){
+			var newSettings = settings;
+			if(typeof newSettings.css[element2mod] !== 'undefined'){
+				newSettings.css[element2mod][property] = String(value);
+			}
+			console.log('old',settings);
+			console.log('new',newSettings);
+			return newSettings;
+		};
+		
 		// Avoid Plugin.prototype conflicts
 		$.extend( Plugin.prototype, {
 			init: function(settings) {
@@ -60,6 +69,7 @@
 				this.setupScrollListener(settings);
 				this.applyCSS(settings);
 			},
+			
 			addElementToDOM: function(settings){
 				if(!$('#'+settings.elementID).length){
 					//add element
@@ -88,12 +98,22 @@
 				});
 			},
 			applyCSS: function(settings){
-				$("#"+settings.elementID).css(settings.css.rootElement);
-				$("#"+settings.elementID+":hover").css(settings.css.rootElementHover);
-				$("#"+settings.elementID).css("font-family",settings.fontToUse);
-				$("#"+settings.elementID+" span").css(settings.css.internalSpan);
-				$("#"+settings.elementID+":hover span").css(settings.css.internalSpanHover);
-				
+				//tweakCSS: function(settings,element2mod,property,value){}
+				var activeSettings = settings;
+				console.log('initialSettings',settings);
+				if(settings.TweakCSS){
+					$.each(settings.TweakCSS, function(e2mod,eCSS){
+						$.each(eCSS,function(eCSSprop,eCSSval){
+							activeSettings = tweakCSS(activeSettings, e2mod, eCSSprop, eCSSval);
+						});
+					});
+				}
+				$("#"+settings.elementID).css(activeSettings.css.rootElement);
+				$("#"+settings.elementID+":hover").css(activeSettings.css.rootElementHover);
+				$("#"+settings.elementID).css("font-family",activeSettings.fontToUse);
+				$("#"+settings.elementID+" span").css(activeSettings.css.internalSpan);
+				$("#"+settings.elementID+":hover span").css(activeSettings.css.internalSpanHover);
+				console.log('activeSettings',activeSettings,'settings',settings);
 			}
 		} );
 
